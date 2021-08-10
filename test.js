@@ -69,10 +69,12 @@ async function hotelPage() {
     })
 
     for (let hotel of hotelLink) {
-    await hotelLinks.push(hotel)
+      //await console.log(hotel)
+      await hotelLinks.push(hotel)
     }
   }
   await browser.close()
+  // await fs.writeFile('nameHotels.txt', hotelLinks.join('\r\n'))
   await console.log(hotelLinks)
   return hotelLinks
 }
@@ -89,6 +91,7 @@ async function dataPage() {
   const page = await browser.newPage()
   await page.setDefaultNavigationTimeout(0)
 
+
   for (let link of links) {
     testId = testId + 1
     console.log(testId)
@@ -101,6 +104,25 @@ async function dataPage() {
       return Array.from(document.querySelectorAll('h1._fecoyn4')).map(
         (x) => x.textContent
       )
+    })
+    try {
+      await page.waitForSelector('span._1ne5r4rt', {
+        waitUntil: 'load',
+        timeout: 5000,
+      })
+    } catch (err) {
+      //console.log(err)
+    }
+
+    const ratings = await page.evaluate(() => {
+      try {
+        return Array.from(document.querySelectorAll('span._1ne5r4rt')).map(
+          (x) => x.textContent
+        )
+      } catch (err) {
+        // console.log(err)
+        return 0
+      }
     })
 
     //await console.log(titles[0])
@@ -130,22 +152,33 @@ async function dataPage() {
         (x) => x.textContent
       )
     })
-    // await console.log(noOfRatings[0])
-    //await noOfRating.push(noOfRatings[0])
-    const dataObject = {
-      title: titles[0],
-      ratings:5
-      Reviews: noOfRatings[0],
+
+    
+    
+
+    var newRev = 0
+    
+    if (/\d/.test(noOfRatings[0])) {
+      let resu = noOfRatings[0].match(/\d+/g)
+      // console.log(resu[0])
+      newRev = parseInt(resu[0], 10)
     }
 
-    const air = new AirBnb(dataObject)
+    const dataObj = {
+      title: titles[0],
+      rating: ratings[0],
+      Reviews: newRev,
+    }
+    // await data.push(dataObj)
+    // await console.log(dataObj)
+    const air = new AirBnb(dataObj)
     air.save()
-    console.log(dataObject)
-    //await data.push(dataObject)
-    // await console.log(dataObject)
+    console.log(dataObj)
   }
 
   await browser.close()
   //await console.log(data)
+
+  return data
 }
 dataPage()
